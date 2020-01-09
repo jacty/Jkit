@@ -1,0 +1,14 @@
+{
+    "name":"Adblock",
+    "description":"Block some ads",
+    "version":"1.0",
+    "manifest_version":2,
+    "browser_action":{
+        "default_title":"Adblock by Jacty"
+    },
+    "content_scripts":[
+        {
+            "matches":["https://*.zhibo8.cc/*"],
+            "css":["style.css"]
+        }]
+}
