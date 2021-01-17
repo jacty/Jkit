@@ -1,14 +1,15 @@
 {
-    "name":"Adblock",
-    "description":"Block some ads",
+    "name":"Jkit",
+    "description":"personal kits",
     "version":"1.0",
     "manifest_version":2,
     "browser_action":{
-        "default_title":"Adblock by Jacty"
+        "default_title":"Jkit by Jacty"
     },
     "content_scripts":[
         {
-            "matches":["https://*.zhibo8.cc/*"],
+            "matches":["https://movie.douban.com/people/*/collect*"],
+            "js":["jkit.js"],
             "css":["style.css"]
         }]
 }
