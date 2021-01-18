@@ -2,3 +2,6 @@
     float:right;
     border: 1px solid;
 }
+#ad_rightBottom{
+    display: none!important;
+}
