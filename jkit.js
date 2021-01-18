@@ -82,7 +82,7 @@ if (isListPage){
 
 const isFilmPage = window.location.href.includes('subject');
 if(isFilmPage){
-    let blockedList = [1309046];
+    let blockedList = ["1309046"];
     let storage = !!localStorage['jkit'] ? JSON.parse(localStorage['jkit']):false;
     let items = storage ? storage.items :[];
     let count = storage ? storage.count : undefined;
@@ -95,7 +95,7 @@ if(isFilmPage){
         }
 
         for(let[k,v] of Object.entries(items)){
-            if(!v.isBlacked&&!v.directors&&!(k in blockedList)){
+            if(!v.isBlacked&&!v.directors&&!blockedList.includes(k)){
                 _items.push(k)
             }
         }
