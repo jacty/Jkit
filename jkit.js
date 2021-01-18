@@ -82,6 +82,7 @@ if (isListPage){
 
 const isFilmPage = window.location.href.includes('subject');
 if(isFilmPage){
+    let blockedList = [1309046];
     let storage = !!localStorage['jkit'] ? JSON.parse(localStorage['jkit']):false;
     let items = storage ? storage.items :[];
     let count = storage ? storage.count : undefined;
@@ -94,14 +95,15 @@ if(isFilmPage){
         }
 
         for(let[k,v] of Object.entries(items)){
-            if(!v.isBlacked){
+            if(!v.isBlacked&&!v.directors&&!(k in blockedList)){
                 _items.push(k)
             }
         }
-
-        const firstKey = _items.shift();
-        localStorage['_jkit'] = JSON.stringify(_items);
-        window.location = `https://movie.douban.com/subject/${firstKey}/`;
+        if(_items.length>0){
+            const firstKey = _items.shift();
+            localStorage['_jkit'] = JSON.stringify(_items);
+            window.location = `https://movie.douban.com/subject/${firstKey}/`;
+        }
     }
 
     if(_items.length>=0&&isFilmPage){
@@ -123,7 +125,7 @@ if(isFilmPage){
         items[id] = {"isBlacked":false,"directors":directors,"rating":rating};
         localStorage['jkit'] = JSON.stringify({items,count});
 
-        if(_item.length!==0){
+        if(_items.length!==0){
             const firstKey = _items.shift();
             localStorage['_jkit'] = JSON.stringify(_items);
             setTimeout(
