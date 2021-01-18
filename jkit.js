@@ -104,11 +104,7 @@ if(isFilmPage){
         window.location = `https://movie.douban.com/subject/${firstKey}/`;
     }
 
-    if(_items.length===0){
-        localStorage.removeItem('_jkit');
-    }
-
-    if(_items.length>0&&isFilmPage){
+    if(_items.length>=0&&isFilmPage){
 
         const id = getId(window.location.href);
 
@@ -127,11 +123,15 @@ if(isFilmPage){
         items[id] = {"isBlacked":false,"directors":directors,"rating":rating};
         localStorage['jkit'] = JSON.stringify({items,count});
 
-        const firstKey = _items.shift();
-        localStorage['_jkit'] = JSON.stringify(_items);
-        setTimeout(
-            window.location = `https://movie.douban.com/subject/${firstKey}/`,
-            Math.random()*10000
-        )
+        if(_item.length!==0){
+            const firstKey = _items.shift();
+            localStorage['_jkit'] = JSON.stringify(_items);
+            setTimeout(
+                window.location = `https://movie.douban.com/subject/${firstKey}/`,
+                Math.random()*10000
+            )
+        } else {
+            localStorage.removeItem('_jkit');
+        }
     }
 }
