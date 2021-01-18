@@ -1,5 +1,9 @@
 const isListPage = window.location.href.includes('people');
 
+function getId(url){
+    return url.split('/')[4];
+}
+
 if (isListPage){
     let items = {}; // for all list pages.
     let _items = {}; // for current list page;
@@ -13,10 +17,6 @@ if (isListPage){
         count = obj['count'];
     } else {
         obj = {};
-    }
-
-    function getId(url){
-        return url.split('/')[4];
     }
 
     //load click event
@@ -80,26 +80,58 @@ if (isListPage){
     updateDOM();
 }
 
+const isFilmPage = window.location.href.includes('subject');
+if(isFilmPage){
+    let storage = !!localStorage['jkit'] ? JSON.parse(localStorage['jkit']):false;
+    let items = storage ? storage.items :[];
+    let count = storage ? storage.count : undefined;
 
-// const starter = Object.keys(items)[0];
-// const isStarter = window.location.href.includes(starter);
-// let i = sessionStorage['i'] ? JSON.parse(sessionStorage['i']) : 0;
-// const id = Object.keys(items)[i];
-// const staff = [];
+    let _items = !!localStorage['_jkit'] ? JSON.parse(localStorage['_jkit']):[];
+    function handleStart(){
+        if(!storage||!items){
+            window.alert(`Jkit: ${!storage ? ' storage ' :' items '} is missing!`);
+            return;
+        }
 
-// if(isStarter){
+        for(let[k,v] of Object.entries(items)){
+            if(!v.isBlacked){
+                _items.push(k)
+            }
+        }
 
-//     [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
-//             const item = {};
-//             const directorId = x.getAttribute('href').split('/')[2];
-//             item[directorId] = x.innerText
-//             staff.push(item);
-//         });
+        const firstKey = _items.shift();
+        localStorage['_jkit'] = JSON.stringify(_items);
+        window.location = `https://movie.douban.com/subject/${firstKey}/`;
+    }
 
-//     items[id].directors = staff;
-//     obj['items']= items;
-//     sessionStorage['x']=JSON.stringify(obj);
-    
-//     window.location = 'https://movie.douban.com/subject/'+Object.keys(items)[i+1]+'/'
+    if(_items.length<=586){
+        localStorage.removeItem('_jkit');
+    }
 
-// } 
+    if(_items.length>0&&isFilmPage){
+
+        const id = getId(window.location.href);
+
+        //fetch directors
+        const directors = [];
+        [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
+                const item = {};
+                const directorId = x.getAttribute('href').split('/')[2];
+                item[directorId] = x.innerText
+                directors.push(item);
+            });    
+
+        // fetch ratings
+        let rating = document.querySelector('#n_rating').value;
+        
+        items[id] = {"isBlacked":false,"directors":directors,"rating":rating};
+        localStorage['jkit'] = JSON.stringify({items,count});
+
+        const firstKey = _items.shift();
+        localStorage['_jkit'] = JSON.stringify(_items);
+        setTimeout(
+            window.location = `https://movie.douban.com/subject/${firstKey}/`,
+            1000
+        )
+    }
+}
