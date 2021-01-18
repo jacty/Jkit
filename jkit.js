@@ -104,7 +104,7 @@ if(isFilmPage){
         window.location = `https://movie.douban.com/subject/${firstKey}/`;
     }
 
-    if(_items.length<=586){
+    if(_items.length===0){
         localStorage.removeItem('_jkit');
     }
 
@@ -131,7 +131,7 @@ if(isFilmPage){
         localStorage['_jkit'] = JSON.stringify(_items);
         setTimeout(
             window.location = `https://movie.douban.com/subject/${firstKey}/`,
-            1000
+            Math.random()*10000
         )
     }
 }
