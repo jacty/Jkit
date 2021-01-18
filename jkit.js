@@ -41,13 +41,13 @@ if (isListPage){
             a.addEventListener('click',()=>{
                 _items[id].isBlacked = true;
                 count = count - 1;
-                updateDOM();
+                updateCount();
                 a.remove();
             })
         }
     })
 
-    function updateDOM() {
+    function updateCount() {
         // get count;
         let _count = 0; //for current page.
         for (let[k, v] of Object.entries(_items)){
@@ -77,7 +77,7 @@ if (isListPage){
         localStorage['jkit'] = JSON.stringify(obj);
     }
 
-    updateDOM();
+    updateCount();
 }
 
 const isFilmPage = window.location.href.includes('subject');
