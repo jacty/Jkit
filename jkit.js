@@ -78,6 +78,62 @@ if (isListPage){
     }
 
     updateCount();
+
+    function updateRates(){
+        //index rating5:0,rating4:1,rating3:2,rating2:3,rating1:4:
+        const rates = [0,0,0,0,0]; 
+        const directors = {}; // {id:[name,count]} 
+        const top3 = []; // contains top 3 count obj [id,name,count]
+        for (let [k,v] of Object.entries(items)){
+            if(v.rating){
+                rates[5 - v.rating] = rates[5 - v.rating] + 1;
+            }
+            if(v.directors){
+                v.directors.map((x)=>{
+                    const id = Object.keys(x)[0];
+                    if(directors[id]){
+                        directors[id][1] = directors[id][1]+1;
+                        const count = directors[id][1];
+                        if(top3.length<3){
+                            top3.push([id,x[id],count]);
+                        } else {
+                            const max = top3[0][2];
+                            const mid = top3[1][2];
+                            const min = top3[2][2];
+                            const current = [id, x[id], count];
+                            if (count> max){
+                                top3[0] = current;
+                            } else{
+                                if(count > mid){
+                                    top3[1] = current;
+                                } else {
+                                    if(count > min){
+                                        top3[2] = current;
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        directors[id] = [x[id],1];
+                    }
+                })
+            }
+        }
+
+        // const _directors = [];
+        // for (let [k, v] of Object.entries(directors)){
+        //     if(Array.isArray(_directors[v[1]])){
+        //         _directors[v[1]].push(k)
+        //     } else {
+        //         _directors[v[1]] = [k];
+        //     }
+        // }
+        // const len = _directors.length;
+        // const top3 = [_directors[len-1][0],_directors[len-2][0],_directors[len-3][0]];
+        
+
+        console.log(top3);
+    }
 }
 
 const isFilmPage = window.location.href.includes('subject');
