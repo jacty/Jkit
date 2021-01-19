@@ -1,2 +1,0 @@
-# adblock
-personal adblock
