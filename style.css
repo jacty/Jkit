@@ -4,3 +4,10 @@
 #ad_rightBottom{
     display: none!important;
 }
+ul.jkit{
+    display: flex;
+    margin-top: -25px;
+}
+ul.jkit li{
+    margin: 10px 5px;
+}

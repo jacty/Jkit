@@ -7,14 +7,19 @@ function getId(url){
 if (isListPage){
     let items = {}; // for all list pages.
     let _items = {}; // for current list page;
+    let top3 = []; // contains top 3 count obj [id,name,count]
     let count = 0;
+    //index rating5:0,rating4:1,rating3:2,rating2:3,rating1:4:
+    let ratings = [0,0,0,0,0]; 
     let obj = localStorage['jkit'];
 
     // fetch data from localStorage
     if (!!obj){
         obj = JSON.parse(obj);
-        items = obj['items'];
-        count = obj['count'];
+        items = obj['items'] ? obj['items'] : items;
+        count = obj['count'] ? obj['count'] : count;
+        top3 = obj['top3'] ? obj['top3'] : top3;
+        ratings = obj['ratings'] ? obj['ratings'] : ratings;
     } else {
         obj = {};
     }
@@ -25,9 +30,9 @@ if (isListPage){
         const id = getId(url);
         let isBlacked;
 
-        if (!!items[id]){// exists in storage;
-            _items[id] = {"isBlacked": items[id].isBlacked};
-        } else {
+        if (!!items[id]){// Modify exists in storage;
+            _items[id] = {"isBlacked": items[id].isBlacked,"directors":items[id].directors,"rating":items[id].rating};
+        } else {// Add 
             _items[id] = {"isBlacked":false};
         }
         isBlacked = _items[id].isBlacked;
@@ -46,6 +51,11 @@ if (isListPage){
             })
         }
     })
+
+    // load ratings
+
+    loadRatings();
+
 
     function updateCount() {
         // get count;
@@ -79,15 +89,37 @@ if (isListPage){
 
     updateCount();
 
-    function updateRates(){
-        //index rating5:0,rating4:1,rating3:2,rating2:3,rating1:4:
-        const rates = [0,0,0,0,0]; 
+
+    function loadRatings(){
+        let innerHtml = ``;
+
+        ratings.slice(0,2).map((x,i)=>{
+            innerHtml += `<li><span class='rating${5-i}-t'></span>x${x}</li>`
+        })
+
+        top3.map((x,i)=>{
+            innerHtml += `<li><a href='https://movie.douban.com/celebrity/${x[0]}/'>${x[1]}</a>(${x[2]})</li>`
+        })
+        const origin = document.querySelector('.jkit');
+        if (!!origin){
+            origin.remove();
+        }
+        const ul = document.createElement('ul');
+        ul.setAttribute('class','jkit');
+        ul.innerHTML = innerHtml;
+        const ref = document.querySelector('.grid-16-8');
+        document.querySelector('#content').insertBefore(ul,ref);
+    }
+
+    function updateRatings(){
         const directors = {}; // {id:[name,count]} 
-        const top3 = []; // contains top 3 count obj [id,name,count]
+        ratings = [0,0,0,0,0];
+        top3 = [];
         for (let [k,v] of Object.entries(items)){
             if(v.rating){
-                rates[5 - v.rating] = rates[5 - v.rating] + 1;
+                ratings[5 - v.rating] = ratings[5 - v.rating] + 1;
             }
+
             if(v.directors){
                 v.directors.map((x)=>{
                     const id = Object.keys(x)[0];
@@ -120,19 +152,13 @@ if (isListPage){
             }
         }
 
-        // const _directors = [];
-        // for (let [k, v] of Object.entries(directors)){
-        //     if(Array.isArray(_directors[v[1]])){
-        //         _directors[v[1]].push(k)
-        //     } else {
-        //         _directors[v[1]] = [k];
-        //     }
-        // }
-        // const len = _directors.length;
-        // const top3 = [_directors[len-1][0],_directors[len-2][0],_directors[len-3][0]];
+        loadRatings()
         
-
-        console.log(top3);
+        obj['items'] = items;
+        obj['count'] = count;
+        obj['top3'] = top3;
+        obj['ratings'] = ratings;
+        localStorage['jkit'] = JSON.stringify(obj);
     }
 }
 
