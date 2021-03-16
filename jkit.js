@@ -1,221 +1,234 @@
-const isListPage = window.location.href.includes('people');
+const isListPage = 
+    (
+        window.location.href.includes('people') &&
+        window.location.href.includes('grid')
+    ) ||
+    window.location.href === 'https://movie.douban.com/mine?status=collect';
 
-function getId(url){
+const data = localStorage['jkit'];
+if (!data){
+    reset();
+} else {
+    if(window.location.search.includes('jkit')){
+        reset();
+    }
+    if(window.location.search.includes('_jkit')){
+        getItems();
+    }
+    if(window.location.search.includes('sortData')){
+        sortData();
+    }
+    if (isListPage){
+        updateDom()
+    }
+}
+
+function getIdFromUrl(url){
     return url.split('/')[4];
 }
 
-if (isListPage){
-    let items = {}; // for all list pages.
-    let _items = {}; // for current list page;
-    let top3 = []; // contains top 3 count obj [id,name,count]
-    let count = 0;
-    //index rating5:0,rating4:1,rating3:2,rating2:3,rating1:4:
-    let ratings = [0,0,0,0,0]; 
-    let obj = localStorage['jkit'];
-
-    // fetch data from localStorage
-    if (!!obj){
-        obj = JSON.parse(obj);
-        items = obj['items'] ? obj['items'] : items;
-        count = obj['count'] ? obj['count'] : count;
-        top3 = obj['top3'] ? obj['top3'] : top3;
-        ratings = obj['ratings'] ? obj['ratings'] : ratings;
-    } else {
-        obj = {};
-    }
-
-    //load click event
-    [...document.querySelectorAll('.title')].map((x)=>{
-        const url = x.getElementsByTagName('a')[0].getAttribute('href');
-        const id = getId(url);
-        let isBlacked;
-
-        if (!!items[id]){// Modify exists in storage;
-            _items[id] = {"isBlacked": items[id].isBlacked,"directors":items[id].directors,"rating":items[id].rating};
-        } else {// Add 
-            _items[id] = {"isBlacked":false};
-        }
-        isBlacked = _items[id].isBlacked;
-
-        if (isBlacked){
+function popTemp(){
+    const _jkit = JSON.parse(localStorage['_jkit']);
+    const key = _jkit.shift();
+        if(!key){
+            delete localStorage['_jkit'];
+            window.location.href = 'https://movie.douban.com/mine?status=collect&sortData';
             return;
-        } else {
-            const a = document.createElement('a');
-            a.innerText = 'X';
-            x.append(a);
-            a.addEventListener('click',()=>{
-                _items[id].isBlacked = true;
-                count = count - 1;
-                updateCount();
-                a.remove();
-            })
         }
-    })
+        localStorage['_jkit'] = JSON.stringify(_jkit);
+        setTimeout(
+            window.location = 
+                `https://movie.douban.com/subject/${key}?_jkit`,
+            Math.random() * 10000
+        )
+}
 
-    // load ratings
-
-    loadRatings();
-
-
-    function updateCount() {
-        // get count;
-        let _count = 0; //for current page.
-        for (let[k, v] of Object.entries(_items)){
-            if (!items[k]){
-                if(v.isBlacked){
-                    _count = _count - 1;
-                } else {
-                    _count = _count + 1;
-                }
-            }
+async function getItemsIds(){
+    const items = {};
+    let star5 = new Set();
+    [...document.querySelectorAll('.item')].map((x)=>{
+        const url = x.querySelector('.title a').getAttribute('href');
+        const nameArray = x.querySelector('.title em').innerText.split('/');
+        const name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
+        const id = getIdFromUrl(url);
+        const ratings = x.querySelector('[class*=rating]').getAttribute('class')[6];
+        items[id]={
+            name,
+            ratings:Number(ratings)
+        };
+        if(Number(ratings)===5){
+            star5.add(id);
         }
-
-        count = count + _count;
-
-        const h1 = document.querySelector('h1');
-        let text = h1.innerText;
-        if (text.includes('/')){
-            h1.innerText = text.split('/')[0] + '/' + count + ')';
-        } else {
-            h1.innerText = text.split(')')[0] + '/' + count + ')';
-        }
-
-        items = Object.assign(items, _items);
-
-        obj['items'] = items;
-        obj['count'] = count;
-        localStorage['jkit'] = JSON.stringify(obj);
-    }
-
-    updateCount();
-
-
-    function loadRatings(){
-        let innerHtml = ``;
-
-        ratings.slice(0,2).map((x,i)=>{
-            innerHtml += `<li><span class='rating${5-i}-t'></span>x${x}</li>`
-        })
-
-        top3.map((x,i)=>{
-            innerHtml += `<li><a href='https://movie.douban.com/celebrity/${x[0]}/'>${x[1]}</a>(${x[2]})</li>`
-        })
-        const origin = document.querySelector('.jkit');
-        if (!!origin){
-            origin.remove();
-        }
-        const ul = document.createElement('ul');
-        ul.setAttribute('class','jkit');
-        ul.innerHTML = innerHtml;
-        const ref = document.querySelector('.grid-16-8');
-        document.querySelector('#content').insertBefore(ul,ref);
-    }
-
-    function updateRatings(){
-        const directors = {}; // {id:[name,count]} 
-        ratings = [0,0,0,0,0];
-        top3 = [];
-        for (let [k,v] of Object.entries(items)){
-            if(v.rating){
-                ratings[5 - v.rating] = ratings[5 - v.rating] + 1;
-            }
-
-            if(v.directors){
-                v.directors.map((x)=>{
-                    const id = Object.keys(x)[0];
-                    if(directors[id]){
-                        directors[id][1] = directors[id][1]+1;
-                        const count = directors[id][1];
-                        if(top3.length<3){
-                            top3.push([id,x[id],count]);
-                        } else {
-                            const max = top3[0][2];
-                            const mid = top3[1][2];
-                            const min = top3[2][2];
-                            const current = [id, x[id], count];
-                            if (count> max){
-                                top3[0] = current;
-                            } else{
-                                if(count > mid){
-                                    top3[1] = current;
-                                } else {
-                                    if(count > min){
-                                        top3[2] = current;
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        directors[id] = [x[id],1];
-                    }
-                })
-            }
-        }
-
-        loadRatings()
-        
-        obj['items'] = items;
-        obj['count'] = count;
-        obj['top3'] = top3;
-        obj['ratings'] = ratings;
-        localStorage['jkit'] = JSON.stringify(obj);
+    });
+    star5 = Array.from(star5);
+    return {
+        items,
+        star5,
     }
 }
 
-const isFilmPage = window.location.href.includes('subject');
-if(isFilmPage){
-    let blockedList = ["1309046"];
-    let storage = !!localStorage['jkit'] ? JSON.parse(localStorage['jkit']):false;
-    let items = storage ? storage.items :[];
-    let count = storage ? storage.count : undefined;
-
-    let _items = !!localStorage['_jkit'] ? JSON.parse(localStorage['_jkit']):[];
-    function handleStart(){
-        if(!storage||!items){
-            window.alert(`Jkit: ${!storage ? ' storage ' :' items '} is missing!`);
-            return;
+async function getItems(res){
+    if (!!res){//initial start
+        const keys = Object.keys(res.items);
+        const key = keys.shift();
+        localStorage['_jkit'] = JSON.stringify(keys);
+        setTimeout(
+            window.location = 
+                `https://movie.douban.com/subject/${key}?_jkit`,
+            Math.random() * 10000
+        )        
+    } else {
+        const jkit = JSON.parse(localStorage['jkit']);
+        const id = getIdFromUrl(window.location.href); 
+        //404 check
+        const h1 = document.querySelector('h1');
+        const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
+        const blacklist = jkit.bl ? new Set(jkit.bl) : new Set(); 
+        const star5 = jkit.star5;
+        if(!h1 || isDrama){//404
+            blacklist.add(id);
+            star5.delete(id);
+            jkit.bl = Array.from(blacklist);
+            localStorage['jkit'] = JSON.stringify(jkit);
+            popTemp();
         }
-
-        for(let[k,v] of Object.entries(items)){
-            if(!v.isBlacked&&!v.directors&&!blockedList.includes(k)){
-                _items.push(k)
-            }
-        }
-        if(_items.length>0){
-            const firstKey = _items.shift();
-            localStorage['_jkit'] = JSON.stringify(_items);
-            window.location = `https://movie.douban.com/subject/${firstKey}/`;
-        }
-    }
-
-    if(_items.length>=0&&isFilmPage){
-
-        const id = getId(window.location.href);
-
+        const people = jkit.people ? jkit.people : {};
         //fetch directors
         const directors = [];
         [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
-                const item = {};
                 const directorId = x.getAttribute('href').split('/')[2];
-                item[directorId] = x.innerText
-                directors.push(item);
-            });    
-
-        // fetch ratings
-        let rating = document.querySelector('#n_rating').value;
-        
-        items[id] = {"isBlacked":false,"directors":directors,"rating":rating};
-        localStorage['jkit'] = JSON.stringify({items,count});
-
-        if(_items.length!==0){
-            const firstKey = _items.shift();
-            localStorage['_jkit'] = JSON.stringify(_items);
-            setTimeout(
-                window.location = `https://movie.douban.com/subject/${firstKey}/`,
-                Math.random()*10000
-            )
-        } else {
-            localStorage.removeItem('_jkit');
-        }
+                people[directorId] = x.innerText;
+                directors.push(directorId);
+            });
+        //fetch editors and IMDB
+        const editors = [];
+        let imdb;
+        [...document.querySelectorAll('.pl')].map((x, i)=>{
+            if(x.innerText === '编剧'){
+                [...x.nextElementSibling.querySelectorAll(['a'])].map((y)=>{
+                    const editorId = y.getAttribute('href').split('/')[2];
+                    people[editorId] = y.innerText;
+                    editors.push(editorId);
+                });
+            }
+            if(x.innerText.includes('IMDB')){
+                imdb = x.nextElementSibling.innerText;
+                return;
+            }
+        });
+        jkit.people = people;
+        jkit.items[id].directors = directors;
+        jkit.items[id].editors = editors;
+        jkit.items[id].imdb = imdb;
+        localStorage['jkit'] = JSON.stringify(jkit);
+        popTemp();
     }
 }
+
+// Reset all the data by crawling the movie pages.
+async function reset(){   
+    if (!isListPage){
+        return;
+    }
+    // get item ids from list
+    await getItemsIds()
+    .then(
+        res => {
+            // write into localStorage
+            if(!data){
+                localStorage['jkit'] = JSON.stringify(res);
+            } else{
+                res = Object.assign(
+                    JSON.parse(localStorage['jkit']),
+                    res
+                )
+                localStorage['jkit'] = JSON.stringify(res);
+            }
+            // jump to next page
+            const nextBtn = document.querySelector('.next a');
+            let nextPage;
+            if (nextBtn !== null){
+                nextPage = nextBtn.getAttribute('href'); 
+                nextPage = `https://movie.douban.com${nextPage}&jkit`;
+                
+                setTimeout(
+                    window.location = nextPage,
+                    Math.random()*10000
+                )
+                
+            } else {
+                return res;
+            }
+        }
+    ).then(
+        res =>{
+            if (res){
+                return getItems(res);
+            }
+        }
+    ).catch(
+        e => {
+            console.error(e);
+            debugger;
+        }
+    );
+}
+
+function sortData(){
+    const rightPage = window.location.href === 'https://movie.douban.com/mine?status=collect&sortData';
+    if(!rightPage){
+        window.location.href = 'https://movie.douban.com/mine?status=collect&sortData';
+    }
+    const jkit = JSON.parse(localStorage['jkit']);
+    const people = jkit.people;
+    let directors = {};
+    let editors = {}; 
+    for(let [k, v] of Object.entries(jkit.items)){
+        v.directors.map((x)=>{
+            directors[x] = directors[x] ? directors[x]+1 : 1;
+        });
+        v.editors.map((x)=>{
+            editors[x] = editors[x] ? editors[x] + 1 : 1;
+        })
+    }
+    let director;
+    for(let [k, v] of Object.entries(directors)){
+        if(director){
+            director = 
+                directors[k] > directors[director] ?
+                k :
+                director;
+        } else {
+            director = k;
+        }
+    }
+    let editor;
+    for(let [k, v] of Object.entries(editors)){
+        if(editor){
+            editor = 
+                editors[k] > editors[editor] ?
+                k :
+                editor;
+        } else {
+            editor = k;
+        }
+    }
+    const directorName = people[director];
+    const directorCount = directors[director];
+    const editorName = people[editor];
+    const editorCount = editors[editor];
+    jkit.director = [directorName,directorCount];
+    jkit.editor = [editorName, editorCount];
+    localStorage['jkit'] = JSON.stringify(jkit);
+    updateDom();
+}
+
+function updateDom(){
+    const jkit = JSON.parse(localStorage['jkit']);
+    const director = jkit.director;
+    const editor = jkit.editor;
+    document.querySelector('h1').append(` ${jkit.director[0]}(${jkit.director[1]}) ${jkit.editor[0]}(${jkit.editor[1]})`)
+}
+
+
+
