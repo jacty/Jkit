@@ -45,7 +45,6 @@ function popTemp(){
 
 async function getItemsIds(){
     const items = {};
-    let star5 = new Set();
     [...document.querySelectorAll('.item')].map((x)=>{
         const url = x.querySelector('.title a').getAttribute('href');
         const nameArray = x.querySelector('.title em').innerText.split('/');
@@ -56,14 +55,10 @@ async function getItemsIds(){
             name,
             ratings:Number(ratings)
         };
-        if(Number(ratings)===5){
-            star5.add(id);
-        }
+
     });
-    star5 = Array.from(star5);
     return {
         items,
-        star5,
     }
 }
 
@@ -84,10 +79,8 @@ async function getItems(res){
         const h1 = document.querySelector('h1');
         const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
         const blacklist = jkit.bl ? new Set(jkit.bl) : new Set(); 
-        const star5 = jkit.star5;
         if(!h1 || isDrama){//404
             blacklist.add(id);
-            star5.delete(id);
             jkit.bl = Array.from(blacklist);
             localStorage['jkit'] = JSON.stringify(jkit);
             popTemp();
