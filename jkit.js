@@ -1,10 +1,25 @@
 const isListPage = 
     window.location.href.includes('grid') ||
-    window.location.href === 'https://movie.douban.com/mine?status=collect';
+    window.location.href.includes('mine?status=collect');
 
-// const data = localStorage['jkit'];
-// if (!data){
-//     reset();
+const jkit = localStorage['jkit'] ? localStorage['jkit'] : false;
+
+let search = window.location.search;
+let isReset = search.includes('reset');
+if(isReset){
+    reset();
+}
+
+function navigate(url){
+     setTimeout(
+        window.location = url,
+        Math.random()*10000
+    )
+}
+
+// if (!jkit){
+    // localStorage has been removed for reset
+    // reset();
 // } else {
 //     if(window.location.search.includes('jkit')){
 //         reset();
@@ -20,9 +35,9 @@ const isListPage =
 //     }
 // }
 
-// function getIdFromUrl(url){
-//     return url.split('/')[4];
-// }
+function getIdFromUrl(url){
+    return url.split('/')[4];
+}
 
 // function popTemp(){
 //     const _jkit = JSON.parse(localStorage['_jkit']);
@@ -40,24 +55,21 @@ const isListPage =
 //         )
 // }
 
-// async function getItemsIds(){
-//     const items = {};
-//     [...document.querySelectorAll('.item')].map((x)=>{
-//         const url = x.querySelector('.title a').getAttribute('href');
-//         const nameArray = x.querySelector('.title em').innerText.split('/');
-//         const name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
-//         const id = getIdFromUrl(url);
-//         const ratings = x.querySelector('[class*=rating]').getAttribute('class')[6];
-//         items[id]={
-//             name,
-//             ratings:Number(ratings)
-//         };
+async function getItemsIds(){
+    let items = {};
 
-//     });
-//     return {
-//         items,
-//     }
-// }
+    [...document.querySelectorAll('.item')].map((x)=>{
+        const url = x.querySelector('.title a').getAttribute('href');
+        const nameArray = x.querySelector('.title em').innerText.split('/');
+        const name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
+        const id = getIdFromUrl(url);
+        items[id]={
+            name,
+        };
+    });
+    
+    return items    
+}
 
 // async function getItems(res){
 //     if (!!res){//initial start
@@ -115,17 +127,23 @@ const isListPage =
 //     }
 // }
 
-// // Reset all the data by crawling the movie pages.
-// async function reset(){   
-//     if (!isListPage){
-//         return;
-//     }
-//     // get item ids from list
-//     await getItemsIds()
-//     .then(
-//         res => {
-//             // write into localStorage
-//             if(!data){
+// Reset all the data by crawling the movie pages.
+async function reset(){  
+    localStorage['jkit'] = {};
+    
+    if (!isListPage){
+        const url = `https://movie.douban.com/mine?status=collect&reset`;
+        navigate(url);
+    }
+    // get item ids from list
+    await getItemsIds()
+    .then(
+        res => {
+            console.log('x',Object.keys(res));
+            const len = Object.keys(res);
+
+            // write into localStorage
+            // if(!data){
 //                 localStorage['jkit'] = JSON.stringify(res);
 //             } else{
 //                 res = Object.assign(
@@ -149,8 +167,9 @@ const isListPage =
 //             } else {
 //                 return res;
 //             }
-//         }
-//     ).then(
+        }
+    )
+    // .then(
 //         res =>{
 //             if (res){
 //                 return getItems(res);
@@ -162,7 +181,7 @@ const isListPage =
 //             debugger;
 //         }
 //     );
-// }
+}
 
 // function sortData(){
 //     const rightPage = window.location.href === 'https://movie.douban.com/mine?status=collect&sortData';
