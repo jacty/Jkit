@@ -8,7 +8,11 @@
     },
     "content_scripts":[
         {
-            "matches":["https://www.88kan.com/*","https://movie.douban.com/people/*/collect*","https://movie.douban.com/subject/*","https://movie.douban.com/mine*"],
+            "matches":[
+                "https://www.88kan.com/*",
+                "https://movie.douban.com/people/*/collect*",
+                "https://movie.douban.com/subject/*",
+                "https://movie.douban.com/mine*"],
             "js":["jkit.js"],
             "css":["style.css"]
         }]
