@@ -1,6 +1,7 @@
 const isListPage = 
     window.location.href.includes('grid') ||
-    window.location.href.includes('mine?status=collect');
+    window.location.href.includes('mine?status=collect') &&
+    (!window.location.href.includes('reset'));
 
 const jkit = localStorage['jkit'] ? JSON.parse(localStorage['jkit']) : false;
 
@@ -8,14 +9,17 @@ let search = window.location.search;
 let isReset = search.includes('reset');
 let isGetItemsIds = search.includes('getItemsIds');
 let isFetchItems = search.includes('_jkit');
+let isSortData = search.includes('sortData') && isListPage;
 if(isReset){
     reset();
 } else if(isGetItemsIds){
     getItemsIds()
 } else if (isFetchItems){
     fetchItems();
-} else if (isListPage){
+} else if (isListPage&&!isSortData){
     updateData()
+} else if (isSortData){
+    sortData();      
 }
 
 function navigate(url){
@@ -84,7 +88,8 @@ async function getItemsIds(){
 
 async function fetchItems(){
     const special = {
-        '元奎':'1289150'
+        '元奎':'1289150',
+        'Daniel Wallace':'1041362',
     }
     const id = getIdFromUrl(window.location.href);
     const h1 = document.querySelector('h1');
@@ -95,15 +100,16 @@ async function fetchItems(){
         jkit.bl = Array.from(blacklist);
         localStorage['jkit'] = JSON.stringify(jkit);
         popTemp();
+        return;
     }
-       
+
     const people = jkit.people ? jkit.people : {};
     //fetch directors
     const directors = [];
     [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
-    const directorId = x.getAttribute('href').split('/')[2];
-    people[directorId] = x.innerText;
-    directors.push(directorId);
+        const directorId = x.getAttribute('href').split('/')[2];
+        people[directorId] = x.innerText;
+        directors.push(directorId);
     });
     // fetch editors and IMDB
     const editors = [];
@@ -147,7 +153,7 @@ function popTemp(){
 // Reset all the data by crawling the movie pages.
 async function reset(){  
     delete localStorage['jkit'];
-    
+    delete localStorage['_jkit'];
     if (!isListPage){
         const url = `https://movie.douban.com/mine?status=collect&reset`;
         navigate(url);
@@ -183,15 +189,18 @@ function sortData(){
     let directors = {};
     let editors = {}; 
     for(let [k, v] of Object.entries(jkit.items)){
-        try{
-            v.directors.map((x)=>{
-            directors[x] = directors[x] ? directors[x] + 1 : 1;
-        });
-        } catch{
-            debugger;
+        if(jkit.bl.includes(k)){
+            continue;
         }
+        v.directors.map((x)=>{
+            if(x){
+                directors[x] = directors[x] ? directors[x] + 1 : 1;
+            }
+        });
         v.editors.map((x)=>{
-            editors[x] = editors[x] ? editors[x] + 1 : 1;
+            if(x){
+                editors[x] = editors[x] ? editors[x] + 1 : 1;
+            }
         });
     }
 
