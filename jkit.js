@@ -1,23 +1,25 @@
-const isListPage = 
-    window.location.href.includes('grid') ||
-    window.location.href.includes('mine?status=collect') &&
-    (!window.location.href.includes('reset'));
+const weburl = window.location.href;
+const search = window.location.search;
 
-const jkit = localStorage['jkit'] ? JSON.parse(localStorage['jkit']) : false;
+const isReset = weburl.endsWith('reset');
+const isListPage = weburl.includes('collect') && (!isReset);
+const isGetItemsIds = weburl.endsWith('getItemsIds');
+const isSortData = weburl.endsWith('sortData') && isListPage;
 
-let search = window.location.search;
-let isReset = search.includes('reset');
-let isGetItemsIds = search.includes('getItemsIds');
-let isFetchItems = search.includes('_jkit');
-let isSortData = search.includes('sortData') && isListPage;
+function storageRead(name){
+    const storage = localStorage[name] ? JSON.parse(localStorage[name]) : [];
+    return storage;
+}
+function storageWrite(name, value){
+    localStorage[name] = JSON.stringify(value);
+}
+
+const jkit = storageRead('jkit');
+
 if(isReset){
     reset();
 } else if(isGetItemsIds){
     getItemsIds()
-} else if (isFetchItems){
-    fetchItems();
-} else if (isListPage&&!isSortData){
-    updateData()
 } else if (isSortData){
     sortData();      
 }
@@ -42,8 +44,14 @@ async function _getItemsIds(){
 
     [...document.querySelectorAll('.item')].map((x)=>{
         const url = x.querySelector('.title a').getAttribute('href');
-        const nameArray = x.querySelector('.title em').innerText.split('/');
-        const name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
+        let nameArray;
+        try{
+            nameArray = x.querySelector('.title em').innerText.split('/');
+        } catch{
+           nameArray = x.querySelector('.title').innerText.split('/');
+        } 
+        let name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
+        name = name.replace('[可播放]','');
         const id = getIdFromUrl(url);
         items[id]={
             name,
@@ -61,7 +69,7 @@ async function getItemsIds(){
                 jkit.items,
                 res
             )
-        localStorage['jkit'] = JSON.stringify({items})
+        storageWrite('jkit',{items});
         
         // jump to next page
         const nextBtn = document.querySelector('.next a');
@@ -74,7 +82,7 @@ async function getItemsIds(){
             // ready to fetch items.
             // in the first run, global var jkit may lack of the last page of 
             // items.
-            let jkit = JSON.parse(localStorage['jkit']);
+            let jkit = storageRead['jkit'];
             let keys = localStorage['_jkit'] ? 
                 JSON.parse(localStorage['_jkit']) :
                 Object.keys(jkit.items);
@@ -98,8 +106,8 @@ async function fetchItems(){
     if(!h1 || isDrama){//404
         blacklist.add(id);
         jkit.bl = Array.from(blacklist);
-        localStorage['jkit'] = JSON.stringify(jkit);
-        popTemp();
+        storageWrite('jkit', jkit);
+        nextPage();
         return;
     }
 
@@ -128,26 +136,23 @@ async function fetchItems(){
     jkit.people = people;
     jkit.items[id].directors = directors;
     jkit.items[id].editors = editors;
-    localStorage['jkit'] = JSON.stringify(jkit);
-    popTemp();
+    storageWrite('jkit', jkit);
+    let _jkit = storageRead('_jkit');
+    _jkit.shift();
+    storageWrite('_jkit', _jkit);
+    nextPage()
 }
 
-function popTemp(){
-    const _jkit = localStorage['_jkit'];
-    let keys;
-    if (!_jkit){
-        keys = [];
+function nextPage(){
+    const _jkit = storageRead('_jkit');
+    if(_jkit.length>0){
+        const key = _jkit[0];
+        const url = `https://movie.douban.com/subject/${key}`;
+        navigate(url);        
     } else {
-        keys = JSON.parse(_jkit);
-    }
-    if(keys.length < 1){
         delete localStorage['_jkit'];
         sortData();
-    }
-    let key = keys.shift();
-    localStorage['_jkit'] = JSON.stringify(keys);
-    const url = `https://movie.douban.com/subject/${key}?_jkit`;
-    navigate(url); 
+    } 
 }
 
 // Reset all the data by crawling the movie pages.
@@ -163,13 +168,13 @@ async function reset(){
     .then(
         res => {
             if(!jkit){
-                localStorage['jkit'] = JSON.stringify({items:res});
+                storageWrite('jkit',{items:res});
             } else {
                 const items = Object.assign(
                     jkit.items,
                     res
                 )
-                localStorage['jkit'] = JSON.stringify(items)
+                storageWrite('jkit', items);
             }
             // jump to next page
             const nextBtn = document.querySelector('.next a');
@@ -184,7 +189,7 @@ async function reset(){
 }
 
 function sortData(){
-    const jkit = JSON.parse(localStorage['jkit']);
+    const jkit = storageRead('jkit');
     const people = jkit.people;
     let directors = {};
     let editors = {}; 
@@ -232,47 +237,51 @@ function sortData(){
     const editorCount = editors[editor];
     jkit.director = [directorName,directorCount];
     jkit.editor = [editorName, editorCount];
-    localStorage['jkit'] = JSON.stringify(jkit);
+    storageWrite('jkit', jkit);
     navigate('https://movie.douban.com/mine?status=collect');
 }
 
 function updateDom(){
-    const jkit = JSON.parse(localStorage['jkit']);
+    const jkit = storageRead('jkit');
     const director = jkit.director;
     const editor = jkit.editor;
     document.querySelector('h1').append(` ${jkit.director[0]}(${jkit.director[1]}) ${jkit.editor[0]}(${jkit.editor[1]})`)
 }
 
-async function updateData(){
-    await _getItemsIds()
-    .then(
-        res =>{
-            const items = jkit.items;
-            const _jkit = [];
-            let hasUpdate = false;
-            for(let [k,v] of Object.entries(res)){
-                if(!items[k]){// new item id
-                    jkit.items[k] = v;
-                    hasUpdate = true;
-                } else {// update item value
-                    if(!items[k].directors){
-                        hasUpdate = true;
+async function verifyData(){
+    if(isListPage){
+        await _getItemsIds()
+        .then(
+            res =>{
+                const items = jkit.items;
+                const _jkit = [];
+                for(let [k,v] of Object.entries(res)){
+                    const isNewItem = !(k in items);
+                    if(isNewItem){// new item id
+                        jkit.items[k] = v;
                         _jkit.push(k);
                     }
                 }
+                storageWrite('jkit', jkit);
+                if(_jkit.length>0){
+                    storageWrite('_jkit', _jkit);
+                    nextPage()
+                } 
             }
-            localStorage['jkit'] = JSON.stringify(jkit);
-            if(_jkit.length>0){
-                localStorage['_jkit'] = JSON.stringify(_jkit);
-                popTemp()
-            } 
-            if (hasUpdate){
-                sortData()
+        )
+    } else {
+        const _jkit = storageRead('_jkit');
+        if(_jkit.length>0){
+            const key = _jkit[0];
+            const curId = getIdFromUrl(weburl);
+            if(curId !== key){
+                const url = `https://movie.douban.com/subject/${key}`;
+                navigate(url)
             } else {
-                updateDom();
+                await fetchItems()
             }
         }
-    )
+    }
 }
 
-
+verifyData();
