@@ -1,13 +1,12 @@
 const weburl = window.location.href;
 const search = window.location.search;
 
-const isReset = weburl.endsWith('reset');
-const isListPage = weburl.includes('collect') && (!isReset);
+const isListPage = weburl.includes('collect');
 const isGetItemsIds = weburl.endsWith('getItemsIds');
 const isSortData = weburl.endsWith('sortData') && isListPage;
 
 function storageRead(name){
-    const storage = localStorage[name] ? JSON.parse(localStorage[name]) : [];
+    const storage = localStorage[name] ? JSON.parse(localStorage[name]) : null;
     return storage;
 }
 function storageWrite(name, value){
@@ -145,7 +144,7 @@ async function fetchItems(){
 
 function nextPage(){
     const _jkit = storageRead('_jkit');
-    if(_jkit.length>0){
+    if(_jkit && _jkit.length>0){
         const key = _jkit[0];
         const url = `https://movie.douban.com/subject/${key}`;
         navigate(url);        
