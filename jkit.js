@@ -2,8 +2,6 @@ const weburl = window.location.href;
 const search = window.location.search;
 
 const isListPage = weburl.includes('collect');
-const isGetItemsIds = weburl.endsWith('getItemsIds');
-const isSortData = weburl.endsWith('sortData') && isListPage;
 
 function storageRead(name){
     const storage = localStorage[name] ? JSON.parse(localStorage[name]) : null;
@@ -14,14 +12,6 @@ function storageWrite(name, value){
 }
 
 const jkit = storageRead('jkit');
-
-if(isReset){
-    reset();
-} else if(isGetItemsIds){
-    getItemsIds()
-} else if (isSortData){
-    sortData();      
-}
 
 function navigate(url){
     try{
@@ -38,7 +28,7 @@ function getIdFromUrl(url){
     return url.split('/')[4];
 }
 
-async function _getItemsIds(){
+async function getItemsIds(){
     let items = {};
 
     [...document.querySelectorAll('.item')].map((x)=>{
@@ -60,40 +50,8 @@ async function _getItemsIds(){
     return items    
 }
 
-async function getItemsIds(){
-    await _getItemsIds()
-    .then((res)=>{
-
-        const items = Object.assign(
-                jkit.items,
-                res
-            )
-        storageWrite('jkit',{items});
-        
-        // jump to next page
-        const nextBtn = document.querySelector('.next a');
-        let nextPage;
-        if (nextBtn !== null){
-            nextPage = nextBtn.getAttribute('href'); 
-            nextPage = `https://movie.douban.com${nextPage}&getItemsIds`;
-            navigate(nextPage);                
-        } else {
-            // ready to fetch items.
-            // in the first run, global var jkit may lack of the last page of 
-            // items.
-            let jkit = storageRead['jkit'];
-            let keys = localStorage['_jkit'] ? 
-                JSON.parse(localStorage['_jkit']) :
-                Object.keys(jkit.items);
-            let key = keys.shift();
-            localStorage['_jkit'] = JSON.stringify(keys);
-            const url = `https://movie.douban.com/subject/${key}?_jkit`;
-            navigate(url); 
-        }
-    })
-}
-
 async function fetchItems(){
+    const _jkit = storageRead('_jkit');
     const special = {
         '元奎':'1289150',
         'Daniel Wallace':'1041362',
@@ -106,7 +64,9 @@ async function fetchItems(){
         blacklist.add(id);
         jkit.bl = Array.from(blacklist);
         storageWrite('jkit', jkit);
-        nextPage();
+        _jkit.shift(); 
+        storageWrite('_jkit', _jkit);
+        nextItem();
         return;
     }
 
@@ -136,13 +96,13 @@ async function fetchItems(){
     jkit.items[id].directors = directors;
     jkit.items[id].editors = editors;
     storageWrite('jkit', jkit);
-    let _jkit = storageRead('_jkit');
+
     _jkit.shift();
     storageWrite('_jkit', _jkit);
-    nextPage()
+    nextItem()
 }
 
-function nextPage(){
+function nextItem(){
     const _jkit = storageRead('_jkit');
     if(_jkit && _jkit.length>0){
         const key = _jkit[0];
@@ -154,35 +114,37 @@ function nextPage(){
     } 
 }
 
-// Reset all the data by crawling the movie pages.
+function nextPage(){
+    const nextBtn = document.querySelector('.next a');
+    let nextPage;
+    if (nextBtn !== null){
+        nextPage = nextBtn.getAttribute('href'); 
+        nextPage = `https://movie.douban.com${nextPage}`;
+        navigate(nextPage);                
+    } else {
+        const latestJkit = storageRead('jkit');
+        latestJkit.isReset = false;
+        const keys = Object.keys(latestJkit.items);
+        storageWrite('_jkit', keys);
+        storageWrite('jkit', latestJkit);
+        nextItem();
+    }
+}
+
 async function reset(){  
-    delete localStorage['jkit'];
     delete localStorage['_jkit'];
-    if (!isListPage){
-        const url = `https://movie.douban.com/mine?status=collect&reset`;
+    const url = `https://movie.douban.com/mine?status=collect`;
+    if (weburl!==url){
         navigate(url);
+        return;
     }
     // get item ids from list
-    await _getItemsIds()
+    await getItemsIds()
     .then(
         res => {
-            if(!jkit){
-                storageWrite('jkit',{items:res});
-            } else {
-                const items = Object.assign(
-                    jkit.items,
-                    res
-                )
-                storageWrite('jkit', items);
-            }
+            storageWrite('jkit',{items:res,isReset:true});
             // jump to next page
-            const nextBtn = document.querySelector('.next a');
-            let nextPage;
-            if (nextBtn !== null){
-                nextPage = nextBtn.getAttribute('href'); 
-                nextPage = `https://movie.douban.com${nextPage}&getItemsIds`;
-                navigate(nextPage);                
-            }
+            nextPage()
         }
     )
 }
@@ -248,8 +210,11 @@ function updateDom(){
 }
 
 async function verifyData(){
+    if(!jkit){
+        reset();
+    }
     if(isListPage){
-        await _getItemsIds()
+        await getItemsIds()
         .then(
             res =>{
                 const items = jkit.items;
@@ -264,7 +229,13 @@ async function verifyData(){
                 storageWrite('jkit', jkit);
                 if(_jkit.length>0){
                     storageWrite('_jkit', _jkit);
-                    nextPage()
+                    if(jkit.isReset){
+                        nextPage()
+                    } else {
+                        nextItem()
+                    }                    
+                } else {
+                    updateDom();
                 } 
             }
         )
