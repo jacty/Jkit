@@ -1,7 +1,7 @@
 const weburl = window.location.href;
 const search = window.location.search;
 
-const isListPage = weburl.includes('collect');
+const isListPage = weburl.includes('collect')&&weburl.includes('douban');
 
 function storageRead(name){
     const storage = localStorage[name] ? JSON.parse(localStorage[name]) : null;
