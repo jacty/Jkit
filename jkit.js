@@ -249,3 +249,9 @@ async function verifyData(){
 }
 
 verifyData();
+
+
+// close modal box of Zhihu
+if (weburl.includes('zhihu.com')){
+  document.querySelector('.Modal-closeButton').click();
+}
