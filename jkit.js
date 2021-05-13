@@ -4,21 +4,22 @@ const search = window.location.search;
 const isListPage = weburl.includes('collect')&&weburl.includes('douban');
 
 function storageRead(name){
-    const storage = localStorage[name] ? JSON.parse(localStorage[name]) : null;
-    return storage;
+  const storage = localStorage[name] ? JSON.parse(localStorage[name]) : null;
+  return storage;
 }
+
 function storageWrite(name, value){
-    localStorage[name] = JSON.stringify(value);
+  localStorage[name] = JSON.stringify(value);
 }
 
 const jkit = storageRead('jkit');
 
 function navigate(url){
     try{
-        setTimeout(
-            window.location = url,
-            Math.random()*10000
-        )
+      setTimeout(
+        window.location = url,
+        Math.random()*10000
+      )
     } catch{
         debugger;
     }
@@ -33,18 +34,11 @@ async function getItemsIds(){
 
     [...document.querySelectorAll('.item')].map((x)=>{
         const url = x.querySelector('.title a').getAttribute('href');
-        let nameArray;
-        try{
-            nameArray = x.querySelector('.title em').innerText.split('/');
-        } catch{
-           nameArray = x.querySelector('.title').innerText.split('/');
-        } 
+        let nameArray = x.querySelector('.title').innerText.split('/');
         let name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
         name = name.replace('[可播放]','');
         const id = getIdFromUrl(url);
-        items[id]={
-            name,
-        };
+        items[id]={name};
     });
     
     return items    
@@ -78,7 +72,7 @@ async function fetchItems(){
         people[directorId] = x.innerText;
         directors.push(directorId);
     });
-    // fetch editors and IMDB
+    // fetch editors
     const editors = [];
     [...document.querySelectorAll('.pl')].map((x, i)=>{
         if(x.innerText === '编剧'){
@@ -134,7 +128,7 @@ function nextPage(){
 async function reset(){  
     delete localStorage['_jkit'];
     const url = `https://movie.douban.com/mine?status=collect`;
-    if (weburl!==url){
+    if (weburl.includes('douban') && weburl!==url){
         navigate(url);
         return;
     }
@@ -241,7 +235,7 @@ async function verifyData(){
         )
     } else {
         const _jkit = storageRead('_jkit');
-        if(_jkit.length>0){
+        if(_jkit && _jkit.length>0){
             const key = _jkit[0];
             const curId = getIdFromUrl(weburl);
             if(curId !== key){
