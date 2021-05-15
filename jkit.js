@@ -256,3 +256,5 @@ if(weburl.includes('douban.com')){
 if (weburl.includes('zhihu.com')){
   document.querySelector('.Modal-closeButton').click();
 }
+
+console.log('x', chrome)

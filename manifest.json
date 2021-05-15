@@ -1,21 +1,21 @@
 {
-    "name":"Jkit",
-    "description":"personal kits",
-    "version":"3.0",
-    "manifest_version":3,
-    "browser_action":{
-        "default_title":"Jkit by Jacty"
-    },
-    "content_scripts":[
-        {
-            "matches":[
-                "https://www.88kan.com/*",
-                "https://movie.douban.com/people/*/collect*",
-                "https://movie.douban.com/subject/*",
-                "https://movie.douban.com/mine*",
-                "https://zhuanlan.zhihu.com/*"
-            ],
-            "js":["jkit.js"],
-            "css":["style.css"]
-        }]
+  "name":"Jkit",
+  "description":"personal kits",
+  "version":"3.0",
+  "manifest_version":3,
+  "browser_action":{
+    "default_title":"Jkit by Jacty"
+  },
+  "content_scripts":[
+    {
+      "matches":[
+        "https://www.88kan.com/*",
+        "https://movie.douban.com/people/*/collect*",
+        "https://movie.douban.com/subject/*",
+        "https://movie.douban.com/mine*",
+        "https://zhuanlan.zhihu.com/*"
+      ],
+      "js":["jkit.js"],
+      "css":["style.css"]
+    }]
 }
