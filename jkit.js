@@ -204,9 +204,15 @@ function updateDom(){
 }
 
 async function verifyData(){
-    if(!jkit){
-        reset();
-    }
+  if(!jkit){      
+    let dom = document.querySelector('h1');
+    let originTxt = dom.innerText;
+    dom.innerHTML = originTxt + `<a class='BtnReset'>Reset</a>`
+    document.querySelector('.BtnReset').addEventListener('click', ()=>{
+      reset();
+    })
+  }
+  
     if(isListPage){
         await getItemsIds()
         .then(
@@ -256,5 +262,3 @@ if(weburl.includes('douban.com')){
 if (weburl.includes('zhihu.com')){
   document.querySelector('.Modal-closeButton').click();
 }
-
-console.log('x', chrome)

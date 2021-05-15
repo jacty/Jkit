@@ -20,5 +20,7 @@
       ],
       "js":["jkit.js"],
       "css":["style.css"]
-    }]
+    }
+  ],
+  "permissions":[]
 }
