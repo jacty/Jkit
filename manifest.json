@@ -3,6 +3,9 @@
   "description":"personal kits",
   "version":"3.0",
   "manifest_version":3,
+  "icons":{
+    "128": "./logo.png"
+  },
   "browser_action":{
     "default_title":"Jkit by Jacty"
   },
