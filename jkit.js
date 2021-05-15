@@ -248,8 +248,9 @@ async function verifyData(){
     }
 }
 
-verifyData();
-
+if(weburl.includes('douban.com')){
+  verifyData();
+}
 
 // close modal box of Zhihu
 if (weburl.includes('zhihu.com')){
