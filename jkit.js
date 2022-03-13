@@ -49,17 +49,7 @@ async function fetchItems(){
   }
   const id = getIdFromUrl(window.location.href);
   const h1 = document.querySelector('h1');
-  const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
-  const isShow = 
-    document.querySelector("span[property='v:genre']").innerText ==='真人秀';
-  const htmlSnippet = document.querySelector('#info').innerHTML;
-  let area;// which countries or areas the item is produced.
-  htmlSnippet.replace(/(区:<\/span>)(.*<)/,(match,$1,$2)=>{
-    area = $2.replace('<','').trim();
-  });
-  console.error('a',area);
-  return;
-  const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set(); 
+
   if(!h1){//404
     if(jkit){
       jkit.bl = Array.from(blacklist.add(id));
@@ -75,6 +65,18 @@ async function fetchItems(){
     nextItem();
     return;
   }
+
+  const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
+  const isShow = 
+    document.querySelector("span[property='v:genre']").innerText ==='真人秀';
+  const htmlSnippet = document.querySelector('#info').innerHTML;
+  let area;// which countries or areas the item is produced.
+  htmlSnippet.replace(/(区:<\/span>)(.*<)/,(match,$1,$2)=>{
+    area = $2.replace('<','').trim();
+  });
+
+  const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set(); 
+
 
     const people = jkit.people ? jkit.people : {};
     //fetch directors
