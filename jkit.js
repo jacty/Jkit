@@ -41,57 +41,66 @@ async function getItemsIds(){
   return items    
 }
 
-// async function fetchItems(){
-//     const _jkit = storageRead('_jkit');
-//     const special = {
-//         '元奎':'1289150',
-//         'Daniel Wallace':'1041362',
-//     }
-//     const id = getIdFromUrl(window.location.href);
-//     const h1 = document.querySelector('h1');
-//     const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
-//     const blacklist = jkit.bl ? new Set(jkit.bl) : new Set(); 
-//     if(!h1 || isDrama){//404
-//         blacklist.add(id);
-//         jkit.bl = Array.from(blacklist);
-//         storageWrite('jkit', jkit);
-//         _jkit.shift(); 
-//         storageWrite('_jkit', _jkit);
-//         nextItem();
-//         return;
-//     }
+async function fetchItems(){
+  const newItems = storageRead('jkitNewItems');
+  const special = {
+    '元奎':'1289150',
+    'Daniel Wallace':'1041362',
+  }
+  const id = getIdFromUrl(window.location.href);
+  const h1 = document.querySelector('h1');
+  const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
+  const isShow = 
+    document.querySelector("span[property='v:genre']").innerText ==='真人秀';
+  
+  const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set(); 
+  if(!h1){//404
+    if(jkit){
+      jkit.bl = Array.from(blacklist.add(id));
+    } else {
+      // extreme situation that the first item is 404.
+      jkit = {
+        'bl':[id]
+      };
+    } 
+    storageWrite('jkit', jkit);
+    newItems.shift(); 
+    storageWrite('jkitNewItems', newItems);
+    nextItem();
+    return;
+  }
 
-//     const people = jkit.people ? jkit.people : {};
-//     //fetch directors
-//     const directors = [];
-//     [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
-//         const directorId = x.getAttribute('href').split('/')[2];
-//         people[directorId] = x.innerText;
-//         directors.push(directorId);
-//     });
-//     // fetch editors
-//     const editors = [];
-//     [...document.querySelectorAll('.pl')].map((x, i)=>{
-//         if(x.innerText === '编剧'){
-//             [...x.nextElementSibling.querySelectorAll(['a'])].map((y)=>{
-//             let editorId = y.getAttribute('href').split('/')[2];
-//             editorId = editorId ? editorId : special[y.innerText];
-//             people[editorId] = y.innerText;
-//             editors.push(editorId);
-//             });
-//         }
-//         return;
-//     });
+    const people = jkit.people ? jkit.people : {};
+    //fetch directors
+    const directors = [];
+    [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
+        const directorId = x.getAttribute('href').split('/')[2];
+        people[directorId] = x.innerText;
+        directors.push(directorId);
+    });
+    // fetch editors
+    const editors = [];
+    [...document.querySelectorAll('.pl')].map((x, i)=>{
+        if(x.innerText === '编剧'){
+            [...x.nextElementSibling.querySelectorAll(['a'])].map((y)=>{
+            let editorId = y.getAttribute('href').split('/')[2];
+            editorId = editorId ? editorId : special[y.innerText];
+            people[editorId] = y.innerText;
+            editors.push(editorId);
+            });
+        }
+        return;
+    });
 
-//     jkit.people = people;
-//     jkit.items[id].directors = directors;
-//     jkit.items[id].editors = editors;
-//     storageWrite('jkit', jkit);
+    jkit.people = people;
+    jkit.items[id].directors = directors;
+    jkit.items[id].editors = editors;
+    storageWrite('jkit', jkit);
 
-//     _jkit.shift();
-//     storageWrite('_jkit', _jkit);
-//     nextItem()
-// }
+    _jkit.shift();
+    storageWrite('_jkit', _jkit);
+    nextItem()
+}
 
 function nextItem(){
   const newItems = storageRead('jkitNewItems');
