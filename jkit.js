@@ -146,76 +146,72 @@ async function reset(){
     )
 }
 
-function sortData(){
-    const jkit = storageRead('jkit');
-    const people = jkit.people;
-    let directors = {};
-    let editors = {}; 
-    for(let [k, v] of Object.entries(jkit.items)){
-        if(jkit.bl.includes(k)){
-            continue;
-        }
-        v.directors.map((x)=>{
-            if(x){
-                directors[x] = directors[x] ? directors[x] + 1 : 1;
-            }
-        });
-        v.editors.map((x)=>{
-            if(x){
-                editors[x] = editors[x] ? editors[x] + 1 : 1;
-            }
-        });
-    }
+// function sortData(){
+//     const jkit = storageRead('jkit');
+//     const people = jkit.people;
+//     let directors = {};
+//     let editors = {}; 
+//     for(let [k, v] of Object.entries(jkit.items)){
+//         if(jkit.bl.includes(k)){
+//             continue;
+//         }
+//         v.directors.map((x)=>{
+//             if(x){
+//                 directors[x] = directors[x] ? directors[x] + 1 : 1;
+//             }
+//         });
+//         v.editors.map((x)=>{
+//             if(x){
+//                 editors[x] = editors[x] ? editors[x] + 1 : 1;
+//             }
+//         });
+//     }
 
-    let director;
-    for(let [k, v] of Object.entries(directors)){
-        if(director){
-            director = 
-                directors[k] > directors[director] ?
-                k :
-                director;
-        } else {
-            director = k;
-        }
-    }
-    let editor;
-    for(let [k, v] of Object.entries(editors)){
-        if(editor){
-            editor = 
-                editors[k] > editors[editor] ?
-                k :
-                editor;
-        } else {
-            editor = k;
-        }
-    }
-    const directorName = people[director];
-    const directorCount = directors[director];
-    const editorName = people[editor];
-    const editorCount = editors[editor];
-    jkit.director = [directorName,directorCount];
-    jkit.editor = [editorName, editorCount];
-    storageWrite('jkit', jkit);
-    navigate('https://movie.douban.com/mine?status=collect');
-}
+//     let director;
+//     for(let [k, v] of Object.entries(directors)){
+//         if(director){
+//             director = 
+//                 directors[k] > directors[director] ?
+//                 k :
+//                 director;
+//         } else {
+//             director = k;
+//         }
+//     }
+//     let editor;
+//     for(let [k, v] of Object.entries(editors)){
+//         if(editor){
+//             editor = 
+//                 editors[k] > editors[editor] ?
+//                 k :
+//                 editor;
+//         } else {
+//             editor = k;
+//         }
+//     }
+//     const directorName = people[director];
+//     const directorCount = directors[director];
+//     const editorName = people[editor];
+//     const editorCount = editors[editor];
+//     jkit.director = [directorName,directorCount];
+//     jkit.editor = [editorName, editorCount];
+//     storageWrite('jkit', jkit);
+//     navigate('https://movie.douban.com/mine?status=collect');
+// }
 
-function updateDom(){
-    const jkit = storageRead('jkit');
-    const director = jkit.director;
-    const editor = jkit.editor;
-    document.querySelector('h1').append(` ${jkit.director[0]}(${jkit.director[1]}) ${jkit.editor[0]}(${jkit.editor[1]})`)
-}
+// function updateDom(){
+//     const jkit = storageRead('jkit');
+//     const director = jkit.director;
+//     const editor = jkit.editor;
+//     document.querySelector('h1').append(` ${jkit.director[0]}(${jkit.director[1]}) ${jkit.editor[0]}(${jkit.editor[1]})`)
+// }
 
 async function verifyData(){
   if(!jkit){      
-    let dom = document.querySelector('h1');
-    let originTxt = dom.innerText;
-    dom.innerHTML = originTxt + `<a class='BtnReset'>Reset</a>`
-    document.querySelector('.BtnReset').addEventListener('click', ()=>{
-      reset();
-    })
+
   }
-  
+  console.error('x',jkit);
+  return;
     if(isListPage){
         await getItemsIds()
         .then(
@@ -255,6 +251,16 @@ async function verifyData(){
             }
         }
     }
+}
+
+
+/*reset button fixed on aside of people page*/
+if(weburl.includes('douban.com/people')){
+  let dom = document.querySelector('.side-info');
+  dom.innerHTML += `<a class='btnReset'>[Reset]</a>`
+  document.querySelector('.btnReset').addEventListener('click', ()=>{
+    reset();
+  })
 }
 
 if(weburl.includes('douban.com')){
