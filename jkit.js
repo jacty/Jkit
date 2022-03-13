@@ -2,7 +2,7 @@ const weburl = window.location.href;
 const search = window.location.search;
 
 const isListPage = weburl.includes('collect')&&weburl.includes('douban');
-
+/*helper functions start*/
 function storageRead(name){
   const storage = localStorage[name] ? JSON.parse(localStorage[name]) : null;
   return storage;
@@ -15,123 +15,126 @@ function storageWrite(name, value){
 const jkit = storageRead('jkit');
 
 function navigate(url){
-    try{
-      setTimeout(
-        window.location = url,
-        Math.random()*10000
-      )
-    } catch{
-        debugger;
-    }
+  try{
+    setTimeout(
+      window.location = url,
+      Math.random()*10000
+    )
+  } catch{
+    debugger;
+  }
 }
 
 function getIdFromUrl(url){
-    return url.split('/')[4];
+  return url.split('/')[4];
 }
+/*helper funcitons end*/
 
-async function getItemsIds(){
-    let items = {};
+// async function getItemsIds(){
+//     let items = {};
 
-    [...document.querySelectorAll('.item')].map((x)=>{
-        const url = x.querySelector('.title a').getAttribute('href');
-        let nameArray = x.querySelector('.title').innerText.split('/');
-        let name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
-        name = name.replace('[可播放]','');
-        const id = getIdFromUrl(url);
-        items[id]={name};
-    });
+//     [...document.querySelectorAll('.item')].map((x)=>{
+//         const url = x.querySelector('.title a').getAttribute('href');
+//         let nameArray = x.querySelector('.title').innerText.split('/');
+//         let name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
+//         name = name.replace('[可播放]','');
+//         const id = getIdFromUrl(url);
+//         items[id]={name};
+//     });
     
-    return items    
-}
+//     return items    
+// }
 
-async function fetchItems(){
-    const _jkit = storageRead('_jkit');
-    const special = {
-        '元奎':'1289150',
-        'Daniel Wallace':'1041362',
-    }
-    const id = getIdFromUrl(window.location.href);
-    const h1 = document.querySelector('h1');
-    const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
-    const blacklist = jkit.bl ? new Set(jkit.bl) : new Set(); 
-    if(!h1 || isDrama){//404
-        blacklist.add(id);
-        jkit.bl = Array.from(blacklist);
-        storageWrite('jkit', jkit);
-        _jkit.shift(); 
-        storageWrite('_jkit', _jkit);
-        nextItem();
-        return;
-    }
+// async function fetchItems(){
+//     const _jkit = storageRead('_jkit');
+//     const special = {
+//         '元奎':'1289150',
+//         'Daniel Wallace':'1041362',
+//     }
+//     const id = getIdFromUrl(window.location.href);
+//     const h1 = document.querySelector('h1');
+//     const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
+//     const blacklist = jkit.bl ? new Set(jkit.bl) : new Set(); 
+//     if(!h1 || isDrama){//404
+//         blacklist.add(id);
+//         jkit.bl = Array.from(blacklist);
+//         storageWrite('jkit', jkit);
+//         _jkit.shift(); 
+//         storageWrite('_jkit', _jkit);
+//         nextItem();
+//         return;
+//     }
 
-    const people = jkit.people ? jkit.people : {};
-    //fetch directors
-    const directors = [];
-    [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
-        const directorId = x.getAttribute('href').split('/')[2];
-        people[directorId] = x.innerText;
-        directors.push(directorId);
-    });
-    // fetch editors
-    const editors = [];
-    [...document.querySelectorAll('.pl')].map((x, i)=>{
-        if(x.innerText === '编剧'){
-            [...x.nextElementSibling.querySelectorAll(['a'])].map((y)=>{
-            let editorId = y.getAttribute('href').split('/')[2];
-            editorId = editorId ? editorId : special[y.innerText];
-            people[editorId] = y.innerText;
-            editors.push(editorId);
-            });
-        }
-        return;
-    });
+//     const people = jkit.people ? jkit.people : {};
+//     //fetch directors
+//     const directors = [];
+//     [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
+//         const directorId = x.getAttribute('href').split('/')[2];
+//         people[directorId] = x.innerText;
+//         directors.push(directorId);
+//     });
+//     // fetch editors
+//     const editors = [];
+//     [...document.querySelectorAll('.pl')].map((x, i)=>{
+//         if(x.innerText === '编剧'){
+//             [...x.nextElementSibling.querySelectorAll(['a'])].map((y)=>{
+//             let editorId = y.getAttribute('href').split('/')[2];
+//             editorId = editorId ? editorId : special[y.innerText];
+//             people[editorId] = y.innerText;
+//             editors.push(editorId);
+//             });
+//         }
+//         return;
+//     });
 
-    jkit.people = people;
-    jkit.items[id].directors = directors;
-    jkit.items[id].editors = editors;
-    storageWrite('jkit', jkit);
+//     jkit.people = people;
+//     jkit.items[id].directors = directors;
+//     jkit.items[id].editors = editors;
+//     storageWrite('jkit', jkit);
 
-    _jkit.shift();
-    storageWrite('_jkit', _jkit);
-    nextItem()
-}
+//     _jkit.shift();
+//     storageWrite('_jkit', _jkit);
+//     nextItem()
+// }
 
-function nextItem(){
-    const _jkit = storageRead('_jkit');
-    if(_jkit && _jkit.length>0){
-        const key = _jkit[0];
-        const url = `https://movie.douban.com/subject/${key}`;
-        navigate(url);        
-    } else {
-        delete localStorage['_jkit'];
-        sortData();
-    } 
-}
+// function nextItem(){
+//     const _jkit = storageRead('_jkit');
+//     if(_jkit && _jkit.length>0){
+//         const key = _jkit[0];
+//         const url = `https://movie.douban.com/subject/${key}`;
+//         navigate(url);        
+//     } else {
+//         delete localStorage['_jkit'];
+//         sortData();
+//     } 
+// }
 
-function nextPage(){
-    const nextBtn = document.querySelector('.next a');
-    let nextPage;
-    if (nextBtn !== null){
-        nextPage = nextBtn.getAttribute('href'); 
-        nextPage = `https://movie.douban.com${nextPage}`;
-        navigate(nextPage);                
-    } else {
-        const latestJkit = storageRead('jkit');
-        latestJkit.isReset = false;
-        const keys = Object.keys(latestJkit.items);
-        storageWrite('_jkit', keys);
-        storageWrite('jkit', latestJkit);
-        nextItem();
-    }
-}
+// function nextPage(){
+//     const nextBtn = document.querySelector('.next a');
+//     let nextPage;
+//     if (nextBtn !== null){
+//         nextPage = nextBtn.getAttribute('href'); 
+//         nextPage = `https://movie.douban.com${nextPage}`;
+//         navigate(nextPage);                
+//     } else {
+//         const latestJkit = storageRead('jkit');
+//         latestJkit.isReset = false;
+//         const keys = Object.keys(latestJkit.items);
+//         storageWrite('_jkit', keys);
+//         storageWrite('jkit', latestJkit);
+//         nextItem();
+//     }
+// }
 
 async function reset(){  
-    delete localStorage['_jkit'];
-    const url = `https://movie.douban.com/mine?status=collect`;
-    if (weburl.includes('douban') && weburl!==url){
-        navigate(url);
-        return;
-    }
+  delete localStorage['_jkit'];
+  const url = `https://movie.douban.com/mine?status=collect`;
+  if (weburl.includes('douban') && weburl!==url){
+    navigate(url);
+    return;
+  }
+  console.error('reset');
+  return;
     // get item ids from list
     await getItemsIds()
     .then(
