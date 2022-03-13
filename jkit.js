@@ -49,9 +49,10 @@ async function fetchItems(){
   }
   const id = getIdFromUrl(window.location.href);
   const h1 = document.querySelector('h1');
+  const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set();
 
   if(!h1){//404
-    if(jkit){
+    if(jkit){ // update blacklist
       jkit.bl = Array.from(blacklist.add(id));
     } else {
       // extreme situation that the first item is 404.
