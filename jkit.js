@@ -223,21 +223,27 @@ async function verifyData(){
       } 
     });
   } else {
-    // item page. newItems must be existed.
+    // item page. 
+    // Situations:
+    //   1. Navigate to item page without visiting list page: 
+    //        newItems = null; // newItems is collected in list page.
+    //   2. Navigate to item page after visiting list page:
+    //      2.1 There are new items collected:
+    //        newItems = {};
+    //      2.2 There has no new items collected:
+    //        newItems = null;
     const newItems = storageRead('jkitNewItems');
-    console.error('verifyData', newItems);
-    return;
-        if(_jkit && _jkit.length>0){
-            const key = _jkit[0];
-            const curId = getIdFromUrl(weburl);
-            if(curId !== key){
-                const url = `https://movie.douban.com/subject/${key}`;
-                navigate(url)
-            } else {
-                await fetchItems()
-            }
-        }
+    if(newItems?.length>0){// There are new items collected
+      const key = newItems[0];
+      const curId = getIdFromUrl(weburl);// id of current page
+      if(curId !== key){
+        const url = `https://movie.douban.com/subject/${key}`;
+        navigate(url)
+      } else {
+        await fetchItems()
+      }
     }
+  }
 }
 
 
