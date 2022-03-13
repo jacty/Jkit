@@ -29,21 +29,17 @@ function getIdFromUrl(url){
   return url.split('/')[4];
 }
 /*helper funcitons end*/
+async function getItemsIds(){
+  let items = {};
 
-// async function getItemsIds(){
-//     let items = {};
-
-//     [...document.querySelectorAll('.item')].map((x)=>{
-//         const url = x.querySelector('.title a').getAttribute('href');
-//         let nameArray = x.querySelector('.title').innerText.split('/');
-//         let name = nameArray.length > 1 ? nameArray[1].trim() : nameArray[0];
-//         name = name.replace('[可播放]','');
-//         const id = getIdFromUrl(url);
-//         items[id]={name};
-//     });
+  [...document.querySelectorAll('.item')].map((item)=>{
+    const url = item.querySelector('.title a').getAttribute('href');
+    const id = getIdFromUrl(url);
+    items[id]={};
+  });
     
-//     return items    
-// }
+  return items    
+}
 
 // async function fetchItems(){
 //     const _jkit = storageRead('_jkit');
