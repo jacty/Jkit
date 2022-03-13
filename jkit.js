@@ -67,19 +67,23 @@ async function fetchItems(){
     return;
   }
 
-  const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
+  const isDrama = 
+    document.querySelectorAll('.episode_list').length > 0 ? true:false;
   const isShow = 
     document.querySelector("span[property='v:genre']").innerText ==='真人秀';
+  const isDoc = 
+    document.querySelector("span[property='v:genre']").innerText ==='纪录片';
+  
+  let area;// which countries or areas the item is produced. 
   const htmlSnippet = document.querySelector('#info').innerHTML;
-  let area;// which countries or areas the item is produced.
   htmlSnippet.replace(/(区:<\/span>)(.*<)/,(match,$1,$2)=>{
     area = $2.replace('<','').trim();
   });
 
-  const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set(); 
+ 
 
-
-    const people = jkit.people ? jkit.people : {};
+  
+  const people = jkit.people ? jkit.people : {};
     //fetch directors
     const directors = [];
     [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
