@@ -93,17 +93,17 @@ async function getItemsIds(){
 //     nextItem()
 // }
 
-// function nextItem(){
-//     const _jkit = storageRead('_jkit');
-//     if(_jkit && _jkit.length>0){
-//         const key = _jkit[0];
-//         const url = `https://movie.douban.com/subject/${key}`;
-//         navigate(url);        
-//     } else {
-//         delete localStorage['_jkit'];
-//         sortData();
-//     } 
-// }
+function nextItem(){
+  const newItems = storageRead('jkitNewItems');
+  if(newItems && newItems.length>0){
+    const key = newItems[0];
+    const url = `https://movie.douban.com/subject/${key}`;
+    navigate(url);        
+  } else {
+    delete localStorage['jkitNewItems'];
+    sortData();
+  } 
+}
 
 // function nextPage(){
 //     const nextBtn = document.querySelector('.next a');
