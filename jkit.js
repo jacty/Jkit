@@ -217,16 +217,16 @@ async function verifyData(){
 
       if(newItems.length>0){
         storageWrite('jkitNewItems', newItems);
-          jkit?.isReset ? nextPage() : nextItem();                               
-        } else {
-          updateDom();
-        } 
-      }
-    )
+        jkit?.isReset ? nextPage() : nextItem();                               
+      } else {
+        updateDom();
+      } 
+    });
   } else {
-    console.error('verifyData', isListPage);
+    // item page. newItems must be existed.
+    const newItems = storageRead('jkitNewItems');
+    console.error('verifyData', newItems);
     return;
-        const _jkit = storageRead('_jkit');
         if(_jkit && _jkit.length>0){
             const key = _jkit[0];
             const curId = getIdFromUrl(weburl);
