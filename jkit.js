@@ -203,38 +203,29 @@ async function reset(){
 // }
 
 async function verifyData(){
-  if(!jkit){      
+  if(isListPage){
+    await getItemsIds()
+    .then(res =>{
+      // find new items 
+      const items = jkit?.items ? jkit.items : {};
+      const newItems = [];
+      for(let k of Object.keys(res)){
+        if(!(k in items)){// new item id
+          newItems.push(k);
+        }
+      }
 
-  }
-  console.error('x',jkit);
-  return;
-    if(isListPage){
-        await getItemsIds()
-        .then(
-            res =>{
-                const items = jkit.items;
-                const _jkit = [];
-                for(let [k,v] of Object.entries(res)){
-                    const isNewItem = !(k in items);
-                    if(isNewItem){// new item id
-                        jkit.items[k] = v;
-                        _jkit.push(k);
-                    }
-                }
-                storageWrite('jkit', jkit);
-                if(_jkit.length>0){
-                    storageWrite('_jkit', _jkit);
-                    if(jkit.isReset){
-                        nextPage()
-                    } else {
-                        nextItem()
-                    }                    
-                } else {
-                    updateDom();
-                } 
-            }
-        )
-    } else {
+      if(newItems.length>0){
+        storageWrite('jkitNewItems', newItems);
+          jkit?.isReset ? nextPage() : nextItem();                               
+        } else {
+          updateDom();
+        } 
+      }
+    )
+  } else {
+    console.error('verifyData', isListPage);
+    return;
         const _jkit = storageRead('_jkit');
         if(_jkit && _jkit.length>0){
             const key = _jkit[0];
