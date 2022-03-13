@@ -52,7 +52,13 @@ async function fetchItems(){
   const isDrama = document.querySelectorAll('.episode_list').length > 0 ? true:false;
   const isShow = 
     document.querySelector("span[property='v:genre']").innerText ==='真人秀';
-  
+  const htmlSnippet = document.querySelector('#info').innerHTML;
+  let area;// which countries or areas the item is produced.
+  htmlSnippet.replace(/(区:<\/span>)(.*<)/,(match,$1,$2)=>{
+    area = $2.replace('<','').trim();
+  });
+  console.error('a',area);
+  return;
   const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set(); 
   if(!h1){//404
     if(jkit){
