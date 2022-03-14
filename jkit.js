@@ -236,11 +236,14 @@ async function verifyData(){
       for(let k of Object.keys(res)){
         if(!(k in items)){// new item id
           newItems.push(k);
+          items[k] = {};
         }
       }
 
       if(newItems.length>0){
         storageWrite('jkitNewItems', newItems);
+        jkit.items = items;
+        storageWrite('jkit',jkit); // insert new items into all-items-list.
         jkit.isReset ? nextPage() : nextItem();                               
       } else {
         updateDom();
