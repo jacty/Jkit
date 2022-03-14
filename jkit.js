@@ -166,58 +166,118 @@ function nextPage(){
 //     )
 // }
 
-// function sortData(){
-//     const jkit = storageRead('jkit');
-//     const people = jkit.people;
-//     let directors = {};
-//     let editors = {}; 
-//     for(let [k, v] of Object.entries(jkit.items)){
-//         if(jkit.bl.includes(k)){
-//             continue;
-//         }
-//         v.directors.map((x)=>{
-//             if(x){
-//                 directors[x] = directors[x] ? directors[x] + 1 : 1;
-//             }
-//         });
-//         v.editors.map((x)=>{
-//             if(x){
-//                 editors[x] = editors[x] ? editors[x] + 1 : 1;
-//             }
-//         });
-//     }
-
-//     let director;
-//     for(let [k, v] of Object.entries(directors)){
-//         if(director){
-//             director = 
-//                 directors[k] > directors[director] ?
-//                 k :
-//                 director;
-//         } else {
-//             director = k;
-//         }
-//     }
-//     let editor;
-//     for(let [k, v] of Object.entries(editors)){
-//         if(editor){
-//             editor = 
-//                 editors[k] > editors[editor] ?
-//                 k :
-//                 editor;
-//         } else {
-//             editor = k;
-//         }
-//     }
-//     const directorName = people[director];
-//     const directorCount = directors[director];
-//     const editorName = people[editor];
-//     const editorCount = editors[editor];
-//     jkit.director = [directorName,directorCount];
-//     jkit.editor = [editorName, editorCount];
-//     storageWrite('jkit', jkit);
-//     navigate('https://movie.douban.com/mine?status=collect');
-// }
+function sortData(){
+  const jkit = storageRead('jkit');
+  const people = jkit.people;
+  let directorCounts = {};
+  let editorCounts = {};
+  let genreCounts = [];
+  let areaCounts = {}; 
+  for(let [k, v] of Object.entries(jkit.items)){
+    if(jkit.bl.includes(k)){
+      continue;
+    }
+    v.directors.map((x)=>{
+      if(x){
+        directorCounts[x] = directorCounts[x] ? directorCounts[x] + 1 : 1;
+      }
+    });
+    v.editors.map((x)=>{
+      if(x){
+        editorCounts[x] = editorCounts[x] ? editorCounts[x] + 1 : 1;
+      }
+    });
+    v.area.split('/').map((x)=>{
+      if(x){
+        x = x.trim();
+        areaCounts[x] = areaCounts[x] ? areaCounts[x]+1 : 1;
+      }
+    })
+    genreCounts[v.genre] = genreCounts[v.genre] ? genreCounts[v.genre]+1 : 1;
+  }
+  // find the most counted areas.
+  let mostCountedAreas=[];//[{count:1,name:'中国大陆'}]
+  for(let [name, count] of Object.entries(areaCounts)){
+    if(mostCountedAreas.length === 0){
+      mostCountedAreas.unshift({
+        name,
+        count
+      })
+    } else {
+      if(count > mostCountedAreas[0]?.count){
+        mostCountedAreas.unshift({
+          name,
+          count
+        })
+      } else {
+        if(mostCountedAreas[1]){// pos 1 has value
+          if(count > mostCountedAreas[1]?.count){
+            mostCountedAreas[2] = mostCountedAreas[1];
+            mostCountedAreas[1]={
+              name,
+              count
+            }
+          } else { 
+            if(mostCountedAreas[2]){
+              if(count > mostCountedAreas[2]?.count){
+                mostCountedAreas[2]={
+                  name,
+                  count
+                }
+              }
+            } else {
+              mostCountedAreas[2]={
+                name,
+                count
+              }
+            }
+          }
+        } else { // pos 1 has no value
+          mostCountedAreas[1]={
+            name,
+            count
+          }
+        }
+      }
+    }
+    mostCountedAreas.length = 3;
+  }
+  // find the most counted director and editor.
+  let directorMostCounted;// type: id
+  for(let [k, v] of Object.entries(directorCounts)){
+    if(directorMostCounted){
+      directorMostCounted = 
+        directorCounts[k] > directorCounts[directorMostCounted] ?
+        k :
+        directorMostCounted;
+    } else {
+      directorMostCounted = k;
+    }
+  }
+  let editorMostCounted;
+  for(let [k, v] of Object.entries(editorCounts)){
+    if(editorMostCounted){
+      editorMostCounted = 
+        editorCounts[k] > editorCounts[editorMostCounted] ?
+        k :
+        editorMostCounted;
+    } else {
+      editorMostCounted = k;
+    }
+  }
+  const directorName = people[directorMostCounted];
+  const timesDirectorMostCounted = directorCounts[directorMostCounted];
+  const editorName = people[editorMostCounted];
+  const timesEditorMostCounted = editorCounts[editorMostCounted];
+  jkit.summary = {
+    director:[directorName, timesDirectorMostCounted],
+    editor:[editorName, timesEditorMostCounted],
+    areas:mostCountedAreas,
+    genreCounts
+  }
+  storageWrite('jkit', jkit);
+  navigate('https://movie.douban.com/mine?status=collect');
+}
 
 // function updateDom(){
 //     const jkit = storageRead('jkit');
