@@ -52,67 +52,69 @@ async function fetchItems(){
   const blacklist = jkit?.bl ? new Set(jkit.bl) : new Set();
 
   if(!h1){//404
-    if(jkit){ // update blacklist
-      jkit.bl = Array.from(blacklist.add(id));
-    } else {
-      // extreme situation that the first item is 404.
-      jkit = {
-        'bl':[id]
-      };
-    } 
+    // update blacklist
+    jkit.bl = Array.from(blacklist.add(id));
     storageWrite('jkit', jkit);
     newItems.shift(); 
     storageWrite('jkitNewItems', newItems);
     nextItem();
     return;
   }
-
-  const isDrama = 
+  // genre:
+  //   0: film
+  //   1: series
+  //   2: show
+  //   3: documentary
+  const isSeries = 
     document.querySelectorAll('.episode_list').length > 0 ? true:false;
   const isShow = 
-    document.querySelector("span[property='v:genre']").innerText ==='真人秀';
+    document.querySelector("span[property='v:genre']")?.innerText ==='真人秀';
   const isDoc = 
-    document.querySelector("span[property='v:genre']").innerText ==='纪录片';
-  
+    document.querySelector("span[property='v:genre']")?.innerText ==='纪录片';
+  let genre = 
+    isSeries ? 1 :
+      isShow ? 2 :
+      isDoc ? 3 :
+      0;
+
   let area;// which countries or areas the item is produced. 
   const htmlSnippet = document.querySelector('#info').innerHTML;
   htmlSnippet.replace(/(区:<\/span>)(.*<)/,(match,$1,$2)=>{
     area = $2.replace('<','').trim();
   });
 
- 
+  const people = jkit?.people ? jkit.people : {};
+  //fetch directors
+  const directors = [];
+  [...document.querySelectorAll("a[rel='v:directedBy']")].map((item)=>{
+    const directorId = item.getAttribute('href').split('/')[2];
+    people[directorId] = item.innerText;
+    directors.push(directorId);
+  });
+  // fetch editors
+  const editors = [];
+  [...document.querySelectorAll('.pl')].map((item, i)=>{
+    if(item.innerText === '编剧'){
+      [...item.nextElementSibling.querySelectorAll(['a'])].map((tagA)=>{
+        let editorId = tagA.getAttribute('href').split('/')[2];
+        editorId = editorId ? editorId : special[tagA.innerText];
+        people[editorId] = tagA.innerText;
+        editors.push(editorId);
+      });
+    }
+    return;
+  });
 
-  
-  const people = jkit.people ? jkit.people : {};
-    //fetch directors
-    const directors = [];
-    [...document.querySelectorAll("a[rel='v:directedBy']")].map((x)=>{
-        const directorId = x.getAttribute('href').split('/')[2];
-        people[directorId] = x.innerText;
-        directors.push(directorId);
-    });
-    // fetch editors
-    const editors = [];
-    [...document.querySelectorAll('.pl')].map((x, i)=>{
-        if(x.innerText === '编剧'){
-            [...x.nextElementSibling.querySelectorAll(['a'])].map((y)=>{
-            let editorId = y.getAttribute('href').split('/')[2];
-            editorId = editorId ? editorId : special[y.innerText];
-            people[editorId] = y.innerText;
-            editors.push(editorId);
-            });
-        }
-        return;
-    });
+  jkit.items[id].genre = genre;
+  jkit.items[id].area = area;
+  jkit.people = people; // used for reference when new items found.
+  jkit.items[id].directors = directors;
+  jkit.items[id].editors = editors;
 
-    jkit.people = people;
-    jkit.items[id].directors = directors;
-    jkit.items[id].editors = editors;
-    storageWrite('jkit', jkit);
-
-    _jkit.shift();
-    storageWrite('_jkit', _jkit);
-    nextItem()
+  storageWrite('jkit', jkit);
+  newItems.shift();
+  storageWrite('jkitNewItems', newItems);
+  nextItem()
 }
 
 function nextItem(){
