@@ -12,7 +12,7 @@ function storageWrite(name, value){
   localStorage[name] = JSON.stringify(value);
 }
 
-const jkit = storageRead('jkit');
+let jkit = storageRead('jkit');
 
 function navigate(url){
   try{
@@ -228,6 +228,8 @@ async function verifyData(){
   if(isListPage){
     await getItemsIds()
     .then(res =>{
+      // when jkit is not existed, it will be reset mode.
+      jkit = !jkit ? {'isReset':true} : jkit;
       // find new items 
       const items = jkit?.items ? jkit.items : {};
       const newItems = [];
@@ -239,7 +241,7 @@ async function verifyData(){
 
       if(newItems.length>0){
         storageWrite('jkitNewItems', newItems);
-        jkit?.isReset ? nextPage() : nextItem();                               
+        jkit.isReset ? nextPage() : nextItem();                               
       } else {
         updateDom();
       } 
