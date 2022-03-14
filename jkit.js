@@ -146,26 +146,6 @@ function nextPage(){
   }
 }
 
-// async function reset(){  
-//   delete localStorage['_jkit'];
-//   const url = `https://movie.douban.com/mine?status=collect`;
-//   if (weburl.includes('douban') && weburl!==url){
-//     navigate(url);
-//     return;
-//   }
-//   console.error('reset');
-//   return;
-//     // get item ids from list
-//     await getItemsIds()
-//     .then(
-//         res => {
-//             storageWrite('jkit',{items:res,isReset:true});
-//             // jump to next page
-//             nextPage()
-//         }
-//     )
-// }
-
 function sortData(){
   const jkit = storageRead('jkit');
   const people = jkit.people;
@@ -279,12 +259,22 @@ function sortData(){
   navigate('https://movie.douban.com/mine?status=collect');
 }
 
-// function updateDom(){
-//     const jkit = storageRead('jkit');
-//     const director = jkit.director;
-//     const editor = jkit.editor;
-//     document.querySelector('h1').append(` ${jkit.director[0]}(${jkit.director[1]}) ${jkit.editor[0]}(${jkit.editor[1]})`)
-// }
+function updateDom(){
+  const jkit = storageRead('jkit');
+  const summary = jkit.summary;   
+  document.querySelector('.side-info').append(
+    `
+    ${summary.areas[0].name}(${summary.areas[0].count})
+    ${summary.areas[1].name}(${summary.areas[1].count})
+    ${summary.areas[2].name}(${summary.areas[2].count})
+    ${summary.director[0]}(${summary.director[1]})
+    ${summary.editor[0]}(${summary.editor[1]})
+    电影(${summary.genreCounts[0]})
+    电视剧(${summary.genreCounts[1]})
+    真人秀(${summary.genreCounts[2]})
+    纪录片(${summary.genreCounts[3]})
+    `)
+}
 
 async function verifyData(){
   if(isListPage){
@@ -331,18 +321,8 @@ async function verifyData(){
       } else {
         await fetchItems()
       }
-    }
+    } 
   }
-}
-
-
-/*reset button fixed on aside of people page*/
-if(weburl.includes('douban.com/people')){
-  let dom = document.querySelector('.side-info');
-  dom.innerHTML += `<a class='btnReset'>[Reset]</a>`
-  document.querySelector('.btnReset').addEventListener('click', ()=>{
-    reset();
-  })
 }
 
 if(weburl.includes('douban.com')){
