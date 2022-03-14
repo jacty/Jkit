@@ -127,42 +127,42 @@ function nextItem(){
   } 
 }
 
-// function nextPage(){
-//     const nextBtn = document.querySelector('.next a');
-//     let nextPage;
-//     if (nextBtn !== null){
-//         nextPage = nextBtn.getAttribute('href'); 
-//         nextPage = `https://movie.douban.com${nextPage}`;
-//         navigate(nextPage);                
-//     } else {
-//         const latestJkit = storageRead('jkit');
-//         latestJkit.isReset = false;
-//         const keys = Object.keys(latestJkit.items);
-//         storageWrite('_jkit', keys);
-//         storageWrite('jkit', latestJkit);
-//         nextItem();
-//     }
-// }
-
-async function reset(){  
-  delete localStorage['_jkit'];
-  const url = `https://movie.douban.com/mine?status=collect`;
-  if (weburl.includes('douban') && weburl!==url){
-    navigate(url);
-    return;
+function nextPage(){
+  const nextBtn = document.querySelector('.next a');
+  let nextPage;
+  if (nextBtn !== null){
+    nextPage = nextBtn.getAttribute('href'); 
+    nextPage = `https://movie.douban.com${nextPage}`;
+    navigate(nextPage);                
+  } else {
+    const latestJkit = storageRead('jkit');
+    delete latestJkit.isReset
+    const allNewItems = Object.keys(latestJkit.items);
+    storageWrite('jkitNewItems', allNewItems);
+    storageWrite('jkit', latestJkit);
+    nextItem();
   }
-  console.error('reset');
-  return;
-    // get item ids from list
-    await getItemsIds()
-    .then(
-        res => {
-            storageWrite('jkit',{items:res,isReset:true});
-            // jump to next page
-            nextPage()
-        }
-    )
 }
+
+// async function reset(){  
+//   delete localStorage['_jkit'];
+//   const url = `https://movie.douban.com/mine?status=collect`;
+//   if (weburl.includes('douban') && weburl!==url){
+//     navigate(url);
+//     return;
+//   }
+//   console.error('reset');
+//   return;
+//     // get item ids from list
+//     await getItemsIds()
+//     .then(
+//         res => {
+//             storageWrite('jkit',{items:res,isReset:true});
+//             // jump to next page
+//             nextPage()
+//         }
+//     )
+// }
 
 // function sortData(){
 //     const jkit = storageRead('jkit');
